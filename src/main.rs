@@ -12,8 +12,8 @@ use crossterm::{
 };
 use rand::{distributions::Uniform, prelude::Distribution};
 
-static WIDTH: u8 = 50;
-static HEIGHT: u8 = 30;
+static WIDTH: u8 = 100;
+static HEIGHT: u8 = 60;
 
 fn main() -> io::Result<()> {
     enable_raw_mode()?;
@@ -50,9 +50,24 @@ fn main() -> io::Result<()> {
         update(&mut stage);
 
         queue!(stdout, cursor::SavePosition)?;
-        for row in &stage {
-            for cell in row {
-                queue!(stdout, Print(if cell.is_alive { "██" } else { "  " }))?;
+        for y in (0..HEIGHT).step_by(2) {
+            for x in 0..WIDTH {
+                let (x, y) = (x as usize, y as usize);
+                let cells = (&stage[y][x], &stage[y + 1][x]);
+                queue!(
+                    stdout,
+                    Print(if cells.0.is_alive {
+                        if cells.1.is_alive {
+                            "█"
+                        } else {
+                            "▀"
+                        }
+                    } else if cells.1.is_alive {
+                        "▄"
+                    } else {
+                        " "
+                    })
+                )?;
             }
             queue!(stdout, cursor::MoveToNextLine(1))?;
         }
